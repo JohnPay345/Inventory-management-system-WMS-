@@ -24,6 +24,8 @@ dist/
 
 # Файлы переменных окружения (секреты)
 .env
+.env.*
+secrets
 
 # Контрольные точки Jupyter Notebook
 .ipynb_checkpoints/
