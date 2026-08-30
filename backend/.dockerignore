@@ -1,0 +1,38 @@
+# Байт-код и оптимизированные файлы
+__pycache__/
+*.py[cod]
+
+# Файлы виртуального окружения
+venv/
+.venv
+
+# Артефакты сборки и упаковки
+build/
+dist/
+*.egg-info/
+
+# Лог-файлы и временные данные
+*.log
+*.tmp
+
+# Настройки IDE
+.idea/
+.vscode/
+ruff.toml
+
+# Системные файлы (для macOS)
+.DS_Store
+
+# Файлы переменных окружения (секреты)
+.env
+.env.*
+secrets/*
+
+# Docker файлы
+Dockerfile
+Dockerfile-*
+docker-compose.yml
+docker-compose.*.yml
+
+# Контрольные точки Jupyter Notebook
+.ipynb_checkpoints/

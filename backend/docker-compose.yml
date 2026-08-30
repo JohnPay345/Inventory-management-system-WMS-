@@ -1,0 +1,60 @@
+version: "3.9"
+
+secrets:
+  psql_root_user_pass:
+    file: ./secrets/psql_root_user_pass
+  psql_app_user_pass:
+    file: ./secrets/psql_app_user_pass
+  app_env_file:
+    file: ./.env.production
+
+services:
+  web-api:
+    build:
+      context: .
+      dockerfile: Dockerfile-Python
+    container_name: "web-api"
+    secrets:
+      - source: app_env_file
+        target: app_env_file
+        mode: 0400
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres-db
+    volumes:
+      - app_data:/web-api
+    networks:
+      - my_network
+      - db_net
+
+  postgres-db:
+    build:
+      context: .
+      dockerfile: Dockerfile-PG
+    container_name: "postgres"
+    environment:
+      POSTGRES_USER: admin_db
+      POSTGRES_PASSWORD_FILE: /run/secrets/psql_root_user_pass
+      POSTGRES_DB: admin_db
+    secrets:
+      - source: psql_root_user_pass
+        target: psql_root_user_pass
+        mode: 0400
+      - source: psql_app_user_pass
+        target: psql_app_user_pass
+        mode: 0400
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - db_net
+
+volumes:
+  db_data:
+  app_data:
+
+networks:
+  db_net:
+    driver: bridge
+    internal: true
+  my_network:

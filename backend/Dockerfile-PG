@@ -1,0 +1,18 @@
+# Используем официальный образ PostgreSQL в качестве базового
+FROM postgres:17.4
+
+# Устанавливаем locales и postgresql-client
+RUN apt-get update && apt-get install -y locales locales-all -y postgresql-client
+
+# Копируем наши конфигурационные файлы и sql
+COPY psql-configs/*.conf /etc/postgresql/postgresql.conf.d/
+COPY psql-configs/init-db.sh /docker-entrypoint-initdb.d/
+
+# Создаем скрипт для копирования файлов из /etc/postgresql/postgresql.conf.d в папку с данными при инициализации
+RUN echo "cp /etc/postgresql/postgresql.conf.d/* \$PGDATA" > /docker-entrypoint-initdb.d/psql_configs.sh
+
+# Делаем скрипт исполняемым
+RUN chmod +x /docker-entrypoint-initdb.d/*.sh
+
+# Эксплицитно объявляем volume, чтобы избежать потерь данных
+VOLUME /var/lib/postgresql/data
