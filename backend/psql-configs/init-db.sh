@@ -34,8 +34,7 @@ GRANT USAGE, SELECT ON SEQUENCES TO wms_app_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA app_schema
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO wms_app_user;
 
-CREATE EXTENSION pgcrypto;
-CREATE EXTENSION "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TYPE status_inbound_invoices AS ENUM('draft', 'posted', 'cancelled');
 CREATE TYPE action_type_log AS ENUM('create', 'update', 'annull');
