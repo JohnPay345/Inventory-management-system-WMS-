@@ -1,40 +1,55 @@
 import os
-from dotenv import load_dotenv
+from enum import Enum
+
+from pydantic import Field, SecretStr, computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-env_file = "/run/secrets/app_env_file"
-if os.path.exists(env_file):
-  load_dotenv(env_file)
-elif os.path.exists("./.env.developemnt"):
-  load_dotenv("./.env.developemnt")
+class AppEnv(str, Enum):
+  DEVELOPMENT = "development"
+  PRODUCTION = "production"
 
 
-class Settings:
-  def __init__(self, APP_ENV, DB_HOST, ADMIN_PASSWORD, APP_PASSWORD):
-    self.APP_ENV = APP_ENV
-    self.DB_NAME = "management_system"
-    self.DB_HOST = DB_HOST
+def get_env_file_path() -> str:
+  docker_secret = "/run/secrets/app_env_file"
+  if os.path.exists(docker_secret):
+    return docker_secret
 
-    # Читаем секреты из файлов (подходит и для Docker Secrets, и для локальной разработки)
-    self.ADMIN_PASSWORD = ADMIN_PASSWORD
-    self.APP_PASSWORD = APP_PASSWORD
+  local_dev = "./.env.development"
+  if os.path.exists(local_dev):
+    return local_dev
 
+  return "./.env"
+
+
+class Settings(BaseSettings):
+  model_config = SettingsConfigDict(
+    env_file=get_env_file_path(),
+    env_file_encoding="utf-8",
+    extra="ignore",
+  )
+
+  APP_ENV: AppEnv = Field(default=AppEnv.DEVELOPMENT)
+  DB_NAME: str = "management_system"
+  DB_HOST: str = Field(default="localhost")
+
+  ACCESS_TOKEN: str = Field(default=...)
+  REFRESH_TOKEN: str = Field(default=...)
+  ACCESS_TOKEN_LIFE: int = Field(default=...)
+  REFRESH_TOKEN_LIFE: int = Field(default=...)
+
+  ADMIN_PASSWORD: SecretStr = Field(default=...)
+  APP_PASSWORD: SecretStr = Field(default=...)
+
+  @computed_field
   @property
-  def DATABASE_URL(self):
-    return (
-      f"postgresql+asyncpg://wms_app_user:{self.APP_PASSWORD}@{self.DB_HOST}:5432/{self.DB_NAME}"
-    )
+  def DATABASE_URL(self) -> str:
+    return f"postgresql+asyncpg://wms_app_user:{self.APP_PASSWORD.get_secret_value()}@{self.DB_HOST}:5432/{self.DB_NAME}"
 
+  @computed_field
   @property
-  def ALEMBIC_DATABASE_URL(self):
-    return (
-      f"postgresql+psycopg2://admin_db:{self.ADMIN_PASSWORD}@{self.DB_HOST}:5432/{self.DB_NAME}"
-    )
+  def ALEMBIC_DATABASE_URL(self) -> str:
+    return f"postgresql+psycopg2://admin_db:{self.ADMIN_PASSWORD.get_secret_value()}@{self.DB_HOST}:5432/{self.DB_NAME}"
 
 
-settings = Settings(
-  APP_ENV=os.getenv("APP_ENV", "development"),
-  DB_HOST=os.getenv("DB_HOST", "localhost"),
-  ADMIN_PASSWORD=os.getenv("ADMIN_PASSWORD"),
-  APP_PASSWORD=os.getenv("APP_PASSWORD"),
-)
+settings = Settings()
