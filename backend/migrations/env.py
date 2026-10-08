@@ -1,20 +1,11 @@
-import os
-import sys
-
-# Костыль, чтобы он считал backend за корень
-project_root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-sys.path.insert(0, project_root_dir)
-
-from backend.sevices.database import Base
-
-from backend.shared.config import settings
-
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, text
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool, text
+
+from services.database import Base
+from shared.config import settings
+from shared.models import *
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -41,6 +32,12 @@ def include_object(object, name, type_, reflected, compare_to):
   # Игнорируем служебную таблицу Alembic
   if type_ == "table" and name == "alembic_version":
     return False
+  return True
+
+
+def include_name(name, type_, parent_names):
+  if type_ == "schema":
+    return name in ["app_schema"]
   return True
 
 
@@ -96,6 +93,7 @@ def run_migrations_online() -> None:
       version_table_schema="app_schema",
       include_schemas=True,
       include_object=include_object,
+      include_name=include_name,
     )
 
     with context.begin_transaction():

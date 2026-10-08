@@ -14,6 +14,7 @@ dist/
 # Лог-файлы и временные данные
 *.log
 *.tmp
+.ruff_cache
 
 # Настройки IDE
 .idea/
@@ -29,3 +30,6 @@ secrets
 
 # Контрольные точки Jupyter Notebook
 .ipynb_checkpoints/
+
+# Docker
+docker-compose.override.yml
