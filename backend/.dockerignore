@@ -4,7 +4,7 @@ __pycache__/
 
 # Файлы виртуального окружения
 venv/
-.venv
+.venv/
 
 # Артефакты сборки и упаковки
 build/
@@ -14,6 +14,7 @@ dist/
 # Лог-файлы и временные данные
 *.log
 *.tmp
+.ruff_cache
 
 # Настройки IDE
 .idea/
@@ -26,7 +27,7 @@ ruff.toml
 # Файлы переменных окружения (секреты)
 .env
 .env.*
-secrets/*
+secrets/
 
 # Docker файлы
 Dockerfile

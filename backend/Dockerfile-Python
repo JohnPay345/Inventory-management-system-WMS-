@@ -3,29 +3,42 @@ FROM python:3.14-slim
 
 # Устанавливаем системные зависимости нужные для C-расширений
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
+  build-essential \
+  libpq-dev \
+  postgresql-client \
+  && rm -rf /var/lib/apt/lists/*
+
+# Установка uv
+RUN pip install --no-cache-dir uv
+
+# Создаём не root пользователя
+RUN useradd -u 8888 -m appuser
 
 # Устанавливаем рабочую директорию внутри контейнера
 WORKDIR /backend
+RUN chown appuser:appuser /backend
 
 # Устанавливаем переменную
 ENV APP_ENV=production
 
-# Копируем файл зависимостей и устанавливаем их
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Добавляем виртуальное окружение uv в PATH
+ENV PATH="/backend/.venv/bin:$PATH"
+
+# Переключаемся на изолированного пользователя
+USER appuser
+
+# Копируем файлы описания зависимостей
+COPY --chown=appuser:appuser pyproject.toml uv.lock ./
+
+# Синхронизируем зависимости
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --frozen --no-install-project --no-dev
 
 # Копируем остальной код приложения
-COPY . .
+COPY --chown=appuser:appuser . .
 
 # Разрешаем выполнение скрипта
 RUN chmod +x ./api-entrypoint.sh
-
-# Указываем, какой порт должен быть открыт
-EXPOSE 8000
 
 # Запускаем приложение
 ENTRYPOINT ["/backend/api-entrypoint.sh"]

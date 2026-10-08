@@ -17,7 +17,7 @@ while ! pg_isready -h postgres -U pg_init -d management_system; do
 done
 
 echo "Применяем миграции Alembic..."
-alembic upgrade head
+uv run alembic upgrade head
 
 echo "Миграции применены. Запускаем приложение..."
 exec uvicorn app:app --host 0.0.0.0 --port 8000
